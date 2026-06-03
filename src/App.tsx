@@ -40,10 +40,10 @@ const MASTER_STYLES = [
 // DATA INTEGRASI FOTO
 const PHOTO_INTEGRATION_RULES = {
   '1': "PHOTO INTEGRATION [STYLE 1 - SILHOUETTE WITNESS]: Use a SEMI-REALISTIC FACELESS FIGURE. The face and parts of the upper body must be completely obscured by deep environmental shadows or dramatically blocked by objects. The shadow must look like a natural volume cast onto the person (NO plain smooth skin faces, NO eyes/nose/mouth). View: Side profile or Back view (never facing camera directly). Proportion: Character occupies max 30% of frame. Posture: Passive, witness-like, shoulders slightly down. Lighting: Hard shadows, thin rim light, cinematic noise. CRITICAL: If original photo has GLASSES, the faceless silhouette MUST wear glasses.",
-  '2': "PHOTO INTEGRATION [STYLE 2 - FLAT ABSTRACT]: Use an ABSTRACT / FLAT FACELESS HUMAN (2D Style). Head shape: Covered by shadow, overlaid by a graphic shape, or blurred out seamlessly into the body. Texture: Minimal, solid colors. Posture: Neutral, non-threatening, hands pointing or crossing. Effects: Surrounded by correction lines or Cross/Check marks. CRITICAL: If original photo has GLASSES, represent them as simple vector outlines.",
+  '2': "PHOTO INTEGRATION [STYLE 2 - FLAT ABSTRACT]: Use an ABSTRACT / FLAT FACELESS HUMAN (2D Style). Head shape: Featureless blank face (no eyes, no nose, no mouth) with plain skin color. Do not use shadows to cover the face. Texture: Minimal, solid colors. Posture: Neutral, non-threatening, hands pointing or crossing. Effects: Surrounded by correction lines or Cross/Check marks. CRITICAL: If original photo has GLASSES, represent them as simple vector outlines.",
   '3': "PHOTO INTEGRATION [STYLE 3 - REALISTIC TENSION]: Use a REALISTIC FACELESS PORTRAIT. The face and chest MUST be naturally obscured by heavy pitch-black shadow falling across the body, or hidden by a large object (book, cloth, smoke). Color: Black & White or Desaturated. Shot: Medium or Bust shot. Posture: Body facing camera, straight or slumped. Effects: High contrast, gritty texture, raw vibe. CRITICAL: If original photo has GLASSES, keep them opaque/reflective on the shadowed face.",
   '4': "PHOTO INTEGRATION [STYLE 4 - CROPPED VICTIM]: Use a FACELESS SILHOUETTE or CROPPED HUMAN. Character often cut off by frame edges. Head: No face, or heavily obscured by environmental lighting/shadows cast across the body. Posture: Slumping, hands open/dropping, body leaning down. Effects: Motion blur, red warning glow, glitch/cracks. CRITICAL: If original photo has GLASSES, include them in the silhouette.",
-  '5': "PHOTO INTEGRATION [STYLE 5 - SATIRICAL CARTOON]: Use a 2D / 2.5D FACELESS CARTOON. Head: Plain or obscured by a massive shadow or odd shape (box, balloon). Proportions: Exaggerated/Unrealistic. Posture: OVER-ACTING, wide arms, extreme lean. Effects: Funny contrast elements, stickers, absurd shapes. CRITICAL: If original photo has GLASSES, make them thick/bold lines.",
+  '5': "PHOTO INTEGRATION [STYLE 5 - SATIRICAL CARTOON]: Use a completely 2D / FACELESS CARTOON. Head: Plain blank skin face (no eyes, no nose, no mouth) without deep shadows, or replaced by an odd shape (box, balloon). Proportions: Exaggerated/Unrealistic. Posture: OVER-ACTING, wide arms, extreme lean. Effects: Funny contrast elements, stickers, absurd shapes. CRITICAL: If original photo has GLASSES, make them thick/bold comic lines.",
   '6': "PHOTO INTEGRATION [STYLE 6 - DUAL STATE]: Use the SAME FACELESS CHARACTER in TWO STATES side-by-side. BEFORE SIDE: Slumping posture, closed body, dull/dark lighting, noise. AFTER SIDE: Upright posture, open body, bright/clean lighting. The character design must be identical, only posture/lighting changes. CRITICAL: If original photo has GLASSES, keep them on both sides."
 };
 
@@ -637,9 +637,26 @@ export default function App() {
     const recommendationKey = `${selectedStyle}_${selectedSubStyle}`;
     const characterRec = CHARACTER_RECOMMENDATIONS[recommendationKey] || CHARACTER_RECOMMENDATIONS['1_A'];
 
-    let charDescription = includePhoto ? `SUBJECT: Use the attached photo as the core character reference. CRITICAL CHARACTER DIRECTIVE: 1. You MUST retain the subject's exact hair style, facial hair (beard/goatee), glasses, and body type from the reference photo. 2. FACELESS RULE: The character's face AND parts of their body MUST be naturally obscured by deep shadows cast by environmental objects, atmospheric elements (like smoke/fog), or creative framing. The shadow/obscuration should flow naturally across the upper body and face, not just an unnatural mask over the face. DO NOT use smooth featureless blank skin. 3. MAINTAIN EXACT IDENTICAL CHARACTER DESIGN, APPAREL, AND FEATURES ACROSS ALL SCENES. AI CHARACTER DIRECTIVE: Create a ${characterRec.style} look.` :
-      (selectedCharTypes.includes('Tak ada Karakter') || selectedCharTypes.length === 0) ? "NO HUMAN CHARACTERS." :
-      `CHARACTERS: ${selectedCharTypes.join(', ')}. STYLE: ${selectedFacelessStyle}. AI CHARACTER DIRECTIVE: ${characterRec.promptInjection}. CRITICAL RULE: Maintain EXACT identical character appearance (same clothing, hair, body) consistently across all slides. FACELESS RULES: The character's face and parts of their body MUST be completely obscured by deep shadows, covered by objects, or heavily blurred out naturally (strictly NO plain/smooth featureless skin faces). The shadow must look like a natural cast shadow.`;
+    const isIllustrationStyle = selectedStyle === '2' || selectedStyle === '5';
+    
+    const facelessRule = isIllustrationStyle ? 
+      "FACELESS RULE: The character MUST have a plain, featureless face with blank skin (absolutely no eyes, no nose, no mouth). Because this is a 2D/illustration style, do NOT obscure the face with deep shadows or black blocks. The face shape must be clearly visible, just completely featureless/blank." : 
+      "FACELESS RULE: The character's face AND parts of their body MUST be naturally obscured by deep shadows cast by environmental objects, atmospheric elements (like smoke/fog), or creative framing. The shadow/obscuration should flow naturally across the upper body and face, not just an unnatural mask over the face. DO NOT use smooth featureless blank skin (no blank faces).";
+
+    let charDescription = "";
+    if (includePhoto) {
+      if (isIllustrationStyle) {
+        charDescription = `SUBJECT: Use the attached photo as a reference. CRITICAL DIRECTIVE: 1. You MUST CONVERT the subject into a completely 2D / FLAT CARTOON ILLUSTRATION. DO NOT output a realistic photo. 2. Retain the subject's general hair style, facial hair, glasses, and clothing. 3. ${facelessRule} 4. MAINTAIN IDENTICAL CHARACTER DESIGN ACROSS SCENES. AI STYLE DIRECTIVE: Create a ${characterRec.style} look.`;
+      } else {
+        charDescription = `SUBJECT: Use the attached photo as a reference. CRITICAL DIRECTIVE: 1. You MUST retain the subject's exact hair style, facial hair, glasses, and body type. 2. ${facelessRule} 3. MAINTAIN IDENTICAL CHARACTER DESIGN ACROSS SCENES. AI STYLE DIRECTIVE: Create a ${characterRec.style} look.`;
+      }
+    } else {
+      if (selectedCharTypes.includes('Tak ada Karakter') || selectedCharTypes.length === 0) {
+        charDescription = "NO HUMAN CHARACTERS.";
+      } else {
+        charDescription = `CHARACTERS: ${selectedCharTypes.join(', ')}. STYLE: ${selectedFacelessStyle}. AI CHARACTER DIRECTIVE: ${characterRec.promptInjection}. CRITICAL RULE: Maintain EXACT identical character appearance (same clothing, hair, body) consistently across all slides. ${facelessRule}`;
+      }
+    }
 
     let textRule = useText ? "TEXT RENDERING: Create clear typographic hierarchy. MUST USE UNIQUE TEXT PER SLIDE. STRICT RULE: DO NOT render structural labels (like 'Headline:', 'Subtext:', 'Slide 1', 'CTA') inside the image layout." : "NO TEXT within the image.";
     const usedColorRule = colorContext ? `Colors: ${colorContext}` : styleData.colorGuideline;
@@ -717,7 +734,10 @@ export default function App() {
         },
         "typography_rules": {
           "instruction": textInstruction,
-          "system": textRule
+          "system": textRule,
+          ...(ratio === '9:16' && {
+            "layout_constraints": "SAFE ZONE MANDATORY: You must leave 220px of empty space at the TOP, 450px of empty space at the BOTTOM, and 35px empty space on BOTH SIDES. All text must be strictly inside the safe zone."
+          })
         },
         "text_parsing_rules": {
           "instruction": "DO NOT render structural labels inside the image layout. ONLY render the exact text in 'headline' and 'subtext' fields."
@@ -735,6 +755,15 @@ export default function App() {
         },
         "technical_render": {
            "aspect_ratio": ratio,
+           ...(ratio === '9:16' && {
+             "safe_zones": {
+               "top_margin": "220px",
+               "bottom_margin": "450px",
+               "left_margin": "35px",
+               "right_margin": "35px",
+               "instruction": "All text and principal objects must be kept within these margins to avoid cropping."
+             }
+           }),
            "quality": "8k",
            "render_engine": "v6.0",
            "style_mode": "raw"
